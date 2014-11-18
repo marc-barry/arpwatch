@@ -10,6 +10,11 @@ import (
 	"github.com/Sirupsen/logrus"
 )
 
+var (
+	requestARPStore *ARPStore = NewARPStore()
+	replyARPStore   *ARPStore = NewARPStore()
+)
+
 func watch(iface *net.Interface) error {
 	addr, err := getInterfaceIPAddress(iface)
 	if err != nil {
@@ -61,7 +66,15 @@ func process(handle *pcap.Handle, iface *net.Interface) {
 }
 
 func handleARP(arp *layers.ARP) {
-	switch arp.Operation {
+	arpData := &ARPData{
+		Operation:        arp.Operation,
+		SenderMACAddress: net.HardwareAddr(arp.SourceHwAddress).String(),
+		SenderIPAddress:  net.IP(arp.SourceProtAddress).String(),
+		TargetMACAddress: net.HardwareAddr(arp.DstHwAddress).String(),
+		TargetIPAddress:  net.IP(arp.DstProtAddress).String(),
+	}
+
+	switch arpData.Operation {
 	case 1: // This operation value defines an arp request.
 		// For a standard ARP request:
 		// - SourceHwAddress: This is the MAC address of the requestor.
@@ -69,11 +82,15 @@ func handleARP(arp *layers.ARP) {
 		// - DstHwAddress: This field is ignored. Basically, this is what an ARP request is actually requesting.
 		// - DstProtAddress: This is the IP address for which the requestor would like the MAC address for (i.e. a reply).
 		Log.WithFields(logrus.Fields{
-			"Requestor MAC Address":  net.HardwareAddr(arp.SourceHwAddress).String(),
-			"Requestor IP Address":   net.IP(arp.SourceProtAddress).String(),
-			"Ignored MAC Address":    net.HardwareAddr(arp.DstHwAddress).String(),
-			"Destination IP Address": net.IP(arp.DstProtAddress).String(),
+			"Requestor MAC Address":  arpData.SenderMACAddress,
+			"Requestor IP Address":   arpData.SenderIPAddress,
+			"Ignored MAC Address":    arpData.TargetMACAddress,
+			"Destination IP Address": arpData.TargetIPAddress,
 		}).Infof("Recieved ARP request.")
+
+		if existingData, existed := requestARPStore.PutARPData(arpData); existed {
+			Log.Infof("Replacing existing request: %#v", *existingData)
+		}
 	case 2: // This operation value defines an arp reply.
 		// For an ARP reply:
 		// - SourceHwAddress: This is the MAC address of the replier.
@@ -81,11 +98,15 @@ func handleARP(arp *layers.ARP) {
 		// - DstHwAddress: This field indicates the address of the requesting host.
 		// - DstProtAddress: This is the IP address of the requesting host.
 		Log.WithFields(logrus.Fields{
-			"Replier MAC Address":   net.HardwareAddr(arp.SourceHwAddress).String(),
-			"Replier IP Address":    net.IP(arp.SourceProtAddress).String(),
-			"Requestor MAC Address": net.HardwareAddr(arp.DstHwAddress).String(),
-			"Requestor IP Address":  net.IP(arp.DstProtAddress).String(),
+			"Replier MAC Address":   arpData.SenderMACAddress,
+			"Replier IP Address":    arpData.SenderIPAddress,
+			"Requestor MAC Address": arpData.TargetMACAddress,
+			"Requestor IP Address":  arpData.TargetIPAddress,
 		}).Infof("Recieved ARP reply.")
+
+		if existingData, existed := replyARPStore.PutARPData(arpData); existed {
+			Log.Infof("Replacing existing reply: %#v", *existingData)
+		}
 	default:
 		Log.Warnf("Unknown sender operation for ARP packet: %#v", *arp)
 	}
