@@ -31,7 +31,7 @@ func watch(iface *net.Interface) error {
 	}
 
 	// This is a blocking call.
-	processARP(handle, iface)
+	process(handle, iface)
 
 	Log.WithFields(logrus.Fields{
 		"interface": iface.Name,
@@ -41,7 +41,7 @@ func watch(iface *net.Interface) error {
 	return nil
 }
 
-func processARP(handle *pcap.Handle, iface *net.Interface) {
+func process(handle *pcap.Handle, iface *net.Interface) {
 	src := gopacket.NewPacketSource(handle, layers.LayerTypeEthernet)
 	for {
 		var packet gopacket.Packet
@@ -54,12 +54,39 @@ func processARP(handle *pcap.Handle, iface *net.Interface) {
 				continue
 			}
 
-			arp := arpLayer.(*layers.ARP)
+			handleARP(arpLayer.(*layers.ARP))
 
-			Log.WithFields(logrus.Fields{
-				"IP address":  net.IP(arp.SourceProtAddress).String(),
-				"MAC address": net.HardwareAddr(arp.SourceHwAddress).String(),
-			}).Infof("Recieved ARP.")
 		}
+	}
+}
+
+func handleARP(arp *layers.ARP) {
+	switch arp.Operation {
+	case 1: // This operation value defines an arp request.
+		// For a standard ARP request:
+		// - SourceHwAddress: This is the MAC address of the requestor.
+		// - SourceProtAddress: This is the IP address of the requestor.
+		// - DstHwAddress: This field is ignored. Basically, this is what an ARP request is actually requesting.
+		// - DstProtAddress: This is the IP address for which the requestor would like the MAC address for (i.e. a reply).
+		Log.WithFields(logrus.Fields{
+			"Requestor MAC Address":  net.HardwareAddr(arp.SourceHwAddress).String(),
+			"Requestor IP Address":   net.IP(arp.SourceProtAddress).String(),
+			"Ignored MAC Address":    net.HardwareAddr(arp.DstHwAddress).String(),
+			"Destination IP Address": net.IP(arp.DstProtAddress).String(),
+		}).Infof("Recieved ARP request.")
+	case 2: // This operation value defines an arp reply.
+		// For an ARP reply:
+		// - SourceHwAddress: This is the MAC address of the replier.
+		// - SourceProtAddress: This is the IP address of the replier.
+		// - DstHwAddress: This field indicates the address of the requesting host.
+		// - DstProtAddress: This is the IP address of the requesting host.
+		Log.WithFields(logrus.Fields{
+			"Replier MAC Address":   net.HardwareAddr(arp.SourceHwAddress).String(),
+			"Replier IP Address":    net.IP(arp.SourceProtAddress).String(),
+			"Requestor MAC Address": net.HardwareAddr(arp.DstHwAddress).String(),
+			"Requestor IP Address":  net.IP(arp.DstProtAddress).String(),
+		}).Infof("Recieved ARP reply.")
+	default:
+		Log.Warnf("Unknown sender operation for ARP packet: %#v", *arp)
 	}
 }
