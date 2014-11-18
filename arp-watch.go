@@ -11,8 +11,13 @@ import (
 )
 
 var (
-	requestARPStore *ARPStore = NewARPStore()
-	replyARPStore   *ARPStore = NewARPStore()
+	requestARPStore    *ARPStore = NewARPStore()
+	replyARPStore      *ARPStore = NewARPStore()
+	gratuitousARPStore *ARPStore = NewARPStore()
+)
+
+const (
+	GratuitousTargetMAC = "ff:ff:ff:ff:ff:ff"
 )
 
 func watch(iface *net.Interface) error {
@@ -81,6 +86,22 @@ func handleARP(arp *layers.ARP) {
 		// - SourceProtAddress: This is the IP address of the requestor.
 		// - DstHwAddress: This field is ignored. Basically, this is what an ARP request is actually requesting.
 		// - DstProtAddress: This is the IP address for which the requestor would like the MAC address for (i.e. a reply).
+
+		if arpData.TargetMACAddress == GratuitousTargetMAC {
+			Log.WithFields(logrus.Fields{
+				"Requestor MAC Address":  arpData.SenderMACAddress,
+				"Requestor IP Address":   arpData.SenderIPAddress,
+				"Broadcast MAC Address":  arpData.TargetMACAddress,
+				"Destination IP Address": arpData.TargetIPAddress,
+			}).Infof("Recieved gratuitous ARP request.")
+
+			if existingData, existed := gratuitousARPStore.PutARPData(arpData); existed {
+				Log.Infof("Replacing existing gratuitous request: %#v", *existingData)
+			}
+
+			return
+		}
+
 		Log.WithFields(logrus.Fields{
 			"Requestor MAC Address":  arpData.SenderMACAddress,
 			"Requestor IP Address":   arpData.SenderIPAddress,
