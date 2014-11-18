@@ -1,0 +1,16 @@
+{
+	"ImportPath": "github.com/marc-barry/arp-watch",
+	"GoVersion": "go1.3.3",
+	"Deps": [
+		{
+			"ImportPath": "code.google.com/p/gopacket",
+			"Comment": "v1.1.9",
+			"Rev": "35f76d16d9afcf180032639ea95daf2fe846d536"
+		},
+		{
+			"ImportPath": "github.com/Sirupsen/logrus",
+			"Comment": "v0.6.0",
+			"Rev": "6ebb4e7b3c24b9fef150d7693e728cb1ebadf1f5"
+		}
+	]
+}
