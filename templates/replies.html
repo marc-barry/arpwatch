@@ -5,6 +5,7 @@
 
   <table class="table table-bordered">
   <thead>
+    <th>Interface</th>
     <th>Sender MAC</th>
     <th>Sender IP</th>
     <th>Target MAC</th>
@@ -14,6 +15,7 @@
   <tbody>
   {{ range $key, $data := .ReplyARPStore.AllARPData }}
     <tr>
+      <td>{{ $data.Interface.Name }}</td>
       <td>{{ $data.SenderMACAddress }}</td>
       <td>{{ $data.SenderIPAddress }}</td>
       <td>{{ $data.TargetMACAddress }}</td>
