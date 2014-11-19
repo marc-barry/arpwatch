@@ -1,12 +1,14 @@
 package main
 
 import (
+	"net"
 	"strings"
 	"sync"
 	"time"
 )
 
 type ARPData struct {
+	Interface        *net.Interface
 	Operation        uint16
 	SenderMACAddress string
 	SenderIPAddress  string

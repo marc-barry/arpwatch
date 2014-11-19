@@ -41,6 +41,8 @@ func watch(iface *net.Interface) error {
 		return err
 	}
 
+	IfaceList.Append(iface)
+
 	// This is a blocking call.
 	process(handle, iface)
 
@@ -65,14 +67,15 @@ func process(handle *pcap.Handle, iface *net.Interface) {
 				continue
 			}
 
-			handleARP(arpLayer.(*layers.ARP))
+			handleARP(arpLayer.(*layers.ARP), iface)
 
 		}
 	}
 }
 
-func handleARP(arp *layers.ARP) {
+func handleARP(arp *layers.ARP, iface *net.Interface) {
 	arpData := &ARPData{
+		Interface:        iface,
 		Operation:        arp.Operation,
 		SenderMACAddress: net.HardwareAddr(arp.SourceHwAddress).String(),
 		SenderIPAddress:  net.IP(arp.SourceProtAddress).String(),
@@ -91,6 +94,7 @@ func handleARP(arp *layers.ARP) {
 
 		if arpData.TargetMACAddress == GratuitousTargetMAC {
 			Log.WithFields(logrus.Fields{
+				"Interface":              arpData.Interface.Name,
 				"Requestor MAC Address":  arpData.SenderMACAddress,
 				"Requestor IP Address":   arpData.SenderIPAddress,
 				"Broadcast MAC Address":  arpData.TargetMACAddress,
@@ -105,6 +109,7 @@ func handleARP(arp *layers.ARP) {
 		}
 
 		Log.WithFields(logrus.Fields{
+			"Interface":              arpData.Interface.Name,
 			"Requestor MAC Address":  arpData.SenderMACAddress,
 			"Requestor IP Address":   arpData.SenderIPAddress,
 			"Ignored MAC Address":    arpData.TargetMACAddress,
@@ -121,6 +126,7 @@ func handleARP(arp *layers.ARP) {
 		// - DstHwAddress: This field indicates the address of the requesting host.
 		// - DstProtAddress: This is the IP address of the requesting host.
 		Log.WithFields(logrus.Fields{
+			"Interface":             arpData.Interface.Name,
 			"Replier MAC Address":   arpData.SenderMACAddress,
 			"Replier IP Address":    arpData.SenderIPAddress,
 			"Requestor MAC Address": arpData.TargetMACAddress,

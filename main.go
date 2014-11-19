@@ -6,17 +6,26 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"sort"
+	"strings"
 	"sync"
 	"syscall"
 
 	"github.com/Sirupsen/logrus"
 )
 
-var (
-	Log  = logrus.New()
-	stop = make(chan struct{})
+const (
+	InterfacesFlag = "ifs"
+	PortFlag       = "p"
+)
 
-	port = flag.Int("p", 8001, "HTTP port")
+var (
+	Log       = logrus.New()
+	stop      = make(chan struct{})
+	IfaceList = NewInterfaceList()
+
+	ifs  = flag.String(InterfacesFlag, "", "Comma separated list of interfaces to watch.")
+	port = flag.Int(PortFlag, 8001, "HTTP server listening port.")
 )
 
 func withLogging(f func()) {
@@ -44,25 +53,44 @@ func main() {
 		}
 	}()
 
+	splitIfs := strings.Split(*ifs, ",")
+	if *ifs == "" || len(splitIfs) == 0 {
+		Log.Infof("At least one interface to watch must be provided via the -%s command line argument.", InterfacesFlag)
+		os.Exit(1)
+	}
+
 	// Get a list of all interfaces.
 	ifaces, err := net.Interfaces()
 	if err != nil {
 		Log.WithField("error", err).Fatalf("Error getting the list of interfaces.")
 	}
 
+	sort.Strings(splitIfs)
+
 	var wg sync.WaitGroup
+	iCount := 0
 	for _, iface := range ifaces {
-		wg.Add(1)
-		// Start up a watch on each interface.
-		go func(iface net.Interface) {
-			defer wg.Done()
-			if err := watch(&iface); err != nil {
-				Log.WithFields(logrus.Fields{
-					"error":     err,
-					"interface": iface.Name,
-				}).Errorf("Error watching interface.")
-			}
-		}(iface)
+		i := sort.SearchStrings(splitIfs, iface.Name)
+
+		if i < len(splitIfs) && splitIfs[i] == iface.Name {
+			wg.Add(1)
+			iCount++
+			// Start up a watch on each interface.
+			go func(iface net.Interface) {
+				defer wg.Done()
+				if err := watch(&iface); err != nil {
+					Log.WithFields(logrus.Fields{
+						"error":     err,
+						"interface": iface.Name,
+					}).Errorf("Error watching interface.")
+				}
+			}(iface)
+		}
+	}
+
+	if iCount == 0 {
+		Log.Infof("Exited. No valid interfaces provided.")
+		os.Exit(1)
 	}
 
 	go func() {
