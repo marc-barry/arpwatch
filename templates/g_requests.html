@@ -9,6 +9,7 @@
     <th>Sender IP</th>
     <th>Target MAC</th>
     <th>Target IP</th>
+    <th>Time</th>
   </thead>
   <tbody>
   {{ range $key, $data := .GratuitousARPStore.AllARPData }}
@@ -17,6 +18,7 @@
       <td>{{ $data.SenderIPAddress }}</td>
       <td>{{ $data.TargetMACAddress }}</td>
       <td>{{ $data.TargetIPAddress }}</td>
+      <td>{{ $data.Time.String }}</td>
     </tr>
   {{ end }}
   </tbody>
