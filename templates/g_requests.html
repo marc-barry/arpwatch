@@ -1,0 +1,26 @@
+{{ template "header" }}
+
+<div class="container">
+  <h1>Gratuitous Requests</h1>
+
+  <table class="table table-bordered">
+  <thead>
+    <th>Sender MAC</th>
+    <th>Sender IP</th>
+    <th>Target MAC</th>
+    <th>Target IP</th>
+  </thead>
+  <tbody>
+  {{ range $key, $data := .GratuitousARPStore.AllARPData }}
+    <tr>
+      <td>{{ $data.SenderMACAddress }}</td>
+      <td>{{ $data.SenderIPAddress }}</td>
+      <td>{{ $data.TargetMACAddress }}</td>
+      <td>{{ $data.TargetIPAddress }}</td>
+    </tr>
+  {{ end }}
+  </tbody>
+  </table>
+</div>
+
+{{ template "footer" }}

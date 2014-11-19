@@ -3,6 +3,7 @@ package main
 import (
 	"strings"
 	"sync"
+	"time"
 )
 
 type ARPData struct {
@@ -11,6 +12,7 @@ type ARPData struct {
 	SenderIPAddress  string
 	TargetMACAddress string
 	TargetIPAddress  string
+	Time             time.Time
 }
 
 type ARPStore struct {

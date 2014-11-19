@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net"
+	"time"
 
 	"code.google.com/p/gopacket"
 	"code.google.com/p/gopacket/layers"
@@ -77,6 +78,7 @@ func handleARP(arp *layers.ARP) {
 		SenderIPAddress:  net.IP(arp.SourceProtAddress).String(),
 		TargetMACAddress: net.HardwareAddr(arp.DstHwAddress).String(),
 		TargetIPAddress:  net.IP(arp.DstProtAddress).String(),
+		Time:             time.Now().Truncate(time.Second),
 	}
 
 	switch arpData.Operation {

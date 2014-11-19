@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"net"
 	"os"
 	"os/signal"
@@ -13,9 +15,25 @@ import (
 var (
 	Log  = logrus.New()
 	stop = make(chan struct{})
+
+	port = flag.Int("p", 8001, "HTTP port")
 )
 
+func withLogging(f func()) {
+	defer func() {
+		if r := recover(); r != nil {
+			err := fmt.Errorf("Recovered from panic(%+v)", r)
+
+			Log.WithField("error", err).Panicf("Stopped Locutus: Panic: %s", err.Error())
+		}
+	}()
+
+	f()
+}
+
 func main() {
+	flag.Parse()
+
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
@@ -46,6 +64,12 @@ func main() {
 			}
 		}(iface)
 	}
+
+	go func() {
+		if err = <-StartHTTPServer(*port); err != nil {
+			Log.WithField("error", err).Fatal("Error starting HTTP server.")
+		}
+	}()
 
 	wg.Wait()
 

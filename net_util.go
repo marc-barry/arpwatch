@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net"
+	"os"
 )
 
 func getInterfaceIPAddress(iface *net.Interface) (*net.IPNet, error) {
@@ -22,4 +23,14 @@ func getInterfaceIPAddress(iface *net.Interface) (*net.IPNet, error) {
 	}
 
 	return nil, fmt.Errorf("Unable to get IP address for interface %s.", iface.Name)
+}
+
+// Returns the host as reported by the kernel
+func GetLocalHostname() string {
+	if hostname, err := os.Hostname(); err != nil {
+		Log.WithField("error", err).Errorf("Error getting hostname.")
+		return ""
+	} else {
+		return hostname
+	}
 }
