@@ -6,7 +6,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/util.bash"
 ensure_go_binary godep github.com/tools/godep
 ensure_go_binary errcheck github.com/kisielk/errcheck
 
-target="${root_path}/arp-watch"
+target="${root_path}/arpwatch"
 
 set -x
 go fmt .
