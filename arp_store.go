@@ -2,6 +2,7 @@ package main
 
 import (
 	"net"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -16,6 +17,12 @@ type ARPData struct {
 	TargetIPAddress  string
 	Time             time.Time
 }
+
+type ARPDatas []*ARPData
+
+func (l ARPDatas) Len() int           { return len(l) }
+func (l ARPDatas) Swap(i, j int)      { l[i], l[j] = l[j], l[i] }
+func (l ARPDatas) Less(i, j int) bool { return l[i].Time.Unix() > l[j].Time.Unix() }
 
 type ARPStore struct {
 	sync.RWMutex
@@ -40,7 +47,7 @@ func (s *ARPStore) PutARPData(data *ARPData) (*ARPData, bool) {
 	}
 }
 
-func (s *ARPStore) AllARPData() map[string]*ARPData {
+func (s *ARPStore) ARPDataMap() map[string]*ARPData {
 	s.RLock()
 	defer s.RUnlock()
 
@@ -51,6 +58,21 @@ func (s *ARPStore) AllARPData() map[string]*ARPData {
 	}
 
 	return mapCopy
+}
+
+func (s *ARPStore) ARPDataListSorted() []*ARPData {
+	s.RLock()
+	defer s.RUnlock()
+
+	list := make(ARPDatas, 0)
+
+	for _, data := range s.arpData {
+		list = append(list, data)
+	}
+
+	sort.Sort(list)
+
+	return list
 }
 
 func (s *ARPStore) Len() int {
