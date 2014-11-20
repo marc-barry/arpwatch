@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"html/template"
+	"net"
 	"net/http"
 	"time"
 )
@@ -41,6 +42,7 @@ func StartHTTPServer(port int) chan error {
 }
 
 type TemplateArgs struct {
+	Interfaces         []*net.Interface
 	RequestARPStore    *ARPStore
 	ReplyARPStore      *ARPStore
 	GratuitousARPStore *ARPStore
@@ -68,10 +70,11 @@ func (handler *TemplateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	template := vars[TemplateRouteVar]
 
 	if template == "" {
-		template = "requests.html"
+		template = "interfaces.html"
 	}
 
 	args := &TemplateArgs{
+		Interfaces:         IfaceList.All(),
 		RequestARPStore:    requestARPStore,
 		ReplyARPStore:      replyARPStore,
 		GratuitousARPStore: gratuitousARPStore,

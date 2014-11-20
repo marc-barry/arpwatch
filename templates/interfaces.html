@@ -1,0 +1,22 @@
+{{ template "header" }}
+
+<div class="container">
+  <h1>Interfaces</h1>
+
+  <table class="table table-bordered">
+  <thead>
+    <th>Name</th>
+    <th>MAC</th>
+  </thead>
+  <tbody>
+  {{ range $iface := .Interfaces }}
+    <tr>
+      <td>{{ $iface.Name }}</td>
+      <td>{{ $iface.HardwareAddr.String }}</td>
+    </tr>
+  {{ end }}
+  </tbody>
+  </table>
+</div>
+
+{{ template "footer" }}
