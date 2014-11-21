@@ -81,7 +81,7 @@ func handleARP(arp *layers.ARP, iface *net.Interface) {
 		SenderIPAddress:  net.IP(arp.SourceProtAddress).String(),
 		TargetMACAddress: net.HardwareAddr(arp.DstHwAddress).String(),
 		TargetIPAddress:  net.IP(arp.DstProtAddress).String(),
-		Time:             time.Now().Truncate(time.Second),
+		Time:             time.Now(),
 	}
 
 	switch arpData.Operation {
