@@ -102,7 +102,7 @@ func handleARP(arp *layers.ARP, iface *net.Interface) {
 			}).Infof("Recieved gratuitous ARP request.")
 
 			if existingData, existed := gratuitousARPStore.PutARPData(arpData); existed {
-				Log.Infof("Replacing existing gratuitous request: %#v", *existingData)
+				Log.Infof("Replacing existing gratuitous request: %+v", *existingData)
 			}
 
 			return
@@ -117,7 +117,7 @@ func handleARP(arp *layers.ARP, iface *net.Interface) {
 		}).Infof("Recieved ARP request.")
 
 		if existingData, existed := requestARPStore.PutARPData(arpData); existed {
-			Log.Infof("Replacing existing request: %#v", *existingData)
+			Log.Infof("Replacing existing request: %+v", *existingData)
 		}
 	case 2: // This operation value defines an arp reply.
 		// For an ARP reply:
@@ -134,9 +134,9 @@ func handleARP(arp *layers.ARP, iface *net.Interface) {
 		}).Infof("Recieved ARP reply.")
 
 		if existingData, existed := replyARPStore.PutARPData(arpData); existed {
-			Log.Infof("Replacing existing reply: %#v", *existingData)
+			Log.Infof("Replacing existing reply: %+v", *existingData)
 		}
 	default:
-		Log.Warnf("Unknown sender operation for ARP packet: %#v", *arp)
+		Log.Warnf("Unknown sender operation for ARP packet: %+v", *arp)
 	}
 }
