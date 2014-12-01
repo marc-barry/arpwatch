@@ -33,7 +33,7 @@ func withLogging(f func()) {
 		if r := recover(); r != nil {
 			err := fmt.Errorf("Recovered from panic(%+v)", r)
 
-			Log.WithField("error", err).Panicf("Stopped Locutus: Panic: %s", err.Error())
+			Log.WithField("error", err).Panicf("Stopped with panic: %s", err.Error())
 		}
 	}()
 
