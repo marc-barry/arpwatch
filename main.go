@@ -78,7 +78,7 @@ func main() {
 			// Start up a watch on each interface.
 			go func(iface net.Interface) {
 				defer wg.Done()
-				if err := watch(&iface); err != nil {
+				if err := watch(iface); err != nil {
 					Log.WithFields(logrus.Fields{
 						"error":     err,
 						"interface": iface.Name,

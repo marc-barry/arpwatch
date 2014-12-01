@@ -7,32 +7,32 @@ import (
 
 type InterfaceList struct {
 	mu         sync.RWMutex
-	interfaces []*net.Interface
+	interfaces []net.Interface
 }
 
 func NewInterfaceList() *InterfaceList {
-	return &InterfaceList{interfaces: make([]*net.Interface, 0)}
+	return &InterfaceList{interfaces: make([]net.Interface, 0)}
 }
 
-func (il *InterfaceList) Append(iface *net.Interface) {
+func (il *InterfaceList) Append(iface net.Interface) {
 	il.mu.Lock()
 	defer il.mu.Unlock()
 
 	il.interfaces = append(il.interfaces, iface)
 }
 
-func (il *InterfaceList) Get(i int) *net.Interface {
+func (il *InterfaceList) Get(i int) net.Interface {
 	il.mu.RLock()
 	defer il.mu.RUnlock()
 
 	return il.interfaces[i]
 }
 
-func (il *InterfaceList) All() []*net.Interface {
+func (il *InterfaceList) All() []net.Interface {
 	il.mu.RLock()
 	defer il.mu.RUnlock()
 
-	interfaces := make([]*net.Interface, len(il.interfaces))
+	interfaces := make([]net.Interface, len(il.interfaces))
 
 	for i, iface := range il.interfaces {
 		interfaces[i] = iface

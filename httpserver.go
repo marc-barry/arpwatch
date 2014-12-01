@@ -42,7 +42,7 @@ func StartHTTPServer(port int) chan error {
 }
 
 type TemplateArgs struct {
-	Interfaces         []*net.Interface
+	Interfaces         []net.Interface
 	RequestARPStore    *ARPStore
 	ReplyARPStore      *ARPStore
 	GratuitousARPStore *ARPStore

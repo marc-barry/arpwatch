@@ -21,7 +21,7 @@ const (
 	GratuitousTargetMAC = "ff:ff:ff:ff:ff:ff"
 )
 
-func watch(iface *net.Interface) error {
+func watch(iface net.Interface) error {
 	addr, err := getInterfaceIPAddress(iface)
 	if err != nil {
 		return err
@@ -54,7 +54,7 @@ func watch(iface *net.Interface) error {
 	return nil
 }
 
-func process(handle *pcap.Handle, iface *net.Interface) {
+func process(handle *pcap.Handle, iface net.Interface) {
 	src := gopacket.NewPacketSource(handle, layers.LayerTypeEthernet)
 	for {
 		var packet gopacket.Packet
@@ -73,7 +73,7 @@ func process(handle *pcap.Handle, iface *net.Interface) {
 	}
 }
 
-func handleARP(arp *layers.ARP, iface *net.Interface) {
+func handleARP(arp *layers.ARP, iface net.Interface) {
 	arpData := &ARPData{
 		Interface:        iface,
 		Operation:        arp.Operation,

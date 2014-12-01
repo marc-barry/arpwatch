@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func getInterfaceIPAddress(iface *net.Interface) (*net.IPNet, error) {
+func getInterfaceIPAddress(iface net.Interface) (*net.IPNet, error) {
 	addrs, err := iface.Addrs()
 	if err != nil {
 		return nil, err
