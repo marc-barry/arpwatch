@@ -1,4 +1,4 @@
-arp-watch
+arpwatch
 =========
 
 Watches ARP requests/replies.
