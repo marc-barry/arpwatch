@@ -73,6 +73,18 @@ func process(handle *pcap.Handle, iface net.Interface) {
 	}
 }
 
+func logARPData(arpData *ARPData, str string) {
+	Log.WithFields(logrus.Fields{
+		"Interface":          arpData.Interface.Name,
+		"Operation":          arpData.Operation,
+		"Sender MAC Address": arpData.SenderMACAddress,
+		"Sender IP Address":  arpData.SenderIPAddress,
+		"Target MAC Address": arpData.TargetMACAddress,
+		"Target IP Address":  arpData.TargetIPAddress,
+		"Time":               arpData.Time.String(),
+	}).Infof(str)
+}
+
 func handleARP(arp *layers.ARP, iface net.Interface) {
 	arpData := &ARPData{
 		Interface:        iface,
@@ -95,13 +107,7 @@ func handleARP(arp *layers.ARP, iface net.Interface) {
 		// A gratuitous ARP request is a packet where the source and destination IP are both set to the IP of the machine
 		// issuing the packet and the destination MAC is the broadcast address ff:ff:ff:ff:ff:ff.
 		if (arpData.TargetMACAddress == GratuitousTargetMAC) && (arpData.SenderIPAddress == arpData.TargetIPAddress) {
-			Log.WithFields(logrus.Fields{
-				"Interface":              arpData.Interface.Name,
-				"Requestor MAC Address":  arpData.SenderMACAddress,
-				"Requestor IP Address":   arpData.SenderIPAddress,
-				"Broadcast MAC Address":  arpData.TargetMACAddress,
-				"Destination IP Address": arpData.TargetIPAddress,
-			}).Infof("Received gratuitous ARP request.")
+			logARPData(arpData, "Received gratuitous ARP request.")
 
 			if existingData, existed := gratuitousARPStore.PutARPData(arpData); existed {
 				Log.Infof("Replacing existing gratuitous request: %+v", *existingData)
@@ -127,13 +133,7 @@ func handleARP(arp *layers.ARP, iface net.Interface) {
 		// - SourceProtAddress: This is the IP address of the replier.
 		// - DstHwAddress: This field indicates the address of the requesting host.
 		// - DstProtAddress: This is the IP address of the requesting host.
-		Log.WithFields(logrus.Fields{
-			"Interface":             arpData.Interface.Name,
-			"Replier MAC Address":   arpData.SenderMACAddress,
-			"Replier IP Address":    arpData.SenderIPAddress,
-			"Requestor MAC Address": arpData.TargetMACAddress,
-			"Requestor IP Address":  arpData.TargetIPAddress,
-		}).Infof("Received ARP reply.")
+		logARPData(arpData, "Received ARP reply.")
 
 		if existingData, existed := replyARPStore.PutARPData(arpData); existed {
 			Log.Infof("Replacing existing reply: %+v", *existingData)
