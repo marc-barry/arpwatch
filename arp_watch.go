@@ -92,7 +92,9 @@ func handleARP(arp *layers.ARP, iface net.Interface) {
 		// - DstHwAddress: This field is ignored. Basically, this is what an ARP request is actually requesting.
 		// - DstProtAddress: This is the IP address for which the requestor would like the MAC address for (i.e. a reply).
 
-		if arpData.TargetMACAddress == GratuitousTargetMAC {
+		// A gratuitous ARP request is a packet where the source and destination IP are both set to the IP of the machine
+		// issuing the packet and the destination MAC is the broadcast address ff:ff:ff:ff:ff:ff.
+		if (arpData.TargetMACAddress == GratuitousTargetMAC) && (arpData.SenderIPAddress == arpData.TargetIPAddress) {
 			Log.WithFields(logrus.Fields{
 				"Interface":              arpData.Interface.Name,
 				"Requestor MAC Address":  arpData.SenderMACAddress,
