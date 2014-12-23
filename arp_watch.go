@@ -99,7 +99,7 @@ func handleARP(arp *layers.ARP, iface net.Interface) {
 				"Requestor IP Address":   arpData.SenderIPAddress,
 				"Broadcast MAC Address":  arpData.TargetMACAddress,
 				"Destination IP Address": arpData.TargetIPAddress,
-			}).Infof("Recieved gratuitous ARP request.")
+			}).Infof("Received gratuitous ARP request.")
 
 			if existingData, existed := gratuitousARPStore.PutARPData(arpData); existed {
 				Log.Infof("Replacing existing gratuitous request: %+v", *existingData)
@@ -114,7 +114,7 @@ func handleARP(arp *layers.ARP, iface net.Interface) {
 			"Requestor IP Address":   arpData.SenderIPAddress,
 			"Ignored MAC Address":    arpData.TargetMACAddress,
 			"Destination IP Address": arpData.TargetIPAddress,
-		}).Infof("Recieved ARP request.")
+		}).Infof("Received ARP request.")
 
 		if existingData, existed := requestARPStore.PutARPData(arpData); existed {
 			Log.Infof("Replacing existing request: %+v", *existingData)
@@ -131,7 +131,7 @@ func handleARP(arp *layers.ARP, iface net.Interface) {
 			"Replier IP Address":    arpData.SenderIPAddress,
 			"Requestor MAC Address": arpData.TargetMACAddress,
 			"Requestor IP Address":  arpData.TargetIPAddress,
-		}).Infof("Recieved ARP reply.")
+		}).Infof("Received ARP reply.")
 
 		if existingData, existed := replyARPStore.PutARPData(arpData); existed {
 			Log.Infof("Replacing existing reply: %+v", *existingData)
